@@ -1,0 +1,14 @@
+{application, cup,
+ [
+  {description, "An Erlang cup library"},
+  {vsn, "1"},
+  {modules, [
+             cup
+            ]},
+  {registered, []},
+  {applications, [
+                  kernel,
+                  stdlib
+                 ]},
+  {env, []}
+ ]}.
