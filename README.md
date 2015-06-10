@@ -1,6 +1,8 @@
 # cup
 CUP | ConfigUration Package for Erlang with LFE
 
+<sup>The name is a tribute to [LFE](http://lfe.io/) logo.</sup>
+
 ## Acknowledgements:
 From a Stackoverflow [discussion](https://groups.google.com/forum/#!topic/lisp-flavoured-erlang/S5s6c5DovEE)
 followed by a [deepening](https://groups.google.com/forum/#!topic/lisp-flavoured-erlang/S5s6c5DovEE) in the LFE Google group.
