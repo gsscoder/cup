@@ -6,9 +6,9 @@
 
 %% cup: cup library's entry point.
 
--export([lambda_buffer/1, lambda_list/1, lambda_by_atom/2]).
+-export([consult/1, lambda_buffer/1, lambda_list/1, lambda_by_atom/2]).
 %% Internals Exports for REPL testing
--export([lambdas_body/1, split_lines/1]).
+-export([lambdas_body/1, split_lines/1, consult_internal/1]).
 
 -import(lfe_io, [read_string/1]).
 -import(lfe_eval, [expr/1]).
@@ -19,8 +19,8 @@
 
 %% API
 
-%% TODO: consult(Filename) ->
-%%           split in lines and invoke lambda_list(Defs)
+consult(Filename) ->
+	consult_internal(fun() -> file:read_file(Filename) end).
 
 lambda_buffer(Str) ->
     {ok, Expr} = read_string(Str),
@@ -40,7 +40,18 @@ lambdas_body(Defs) ->
     lists:flatten(["(list ", TupleDefs, ")"]).
 
 split_lines(Buf) ->
-	re:split(Buf,"[\r\n]+").
+	lists:filter(fun(X) -> is_blank_line(X) end,
+		lists:map(fun(X) -> binary_to_list(X) end, re:split(Buf,"[\r\n]+"))).
+
+is_blank_line(Ln) ->
+	length(string:strip(string:strip(Ln,right,32),left,32)) > 0.
+
+consult_internal(ReadFileFunc) ->
+	{Res, Buf} = ReadFileFunc(),
+	case Res of
+		ok -> {Res, lambda_list(split_lines(Buf))};
+		_  -> {error, []}
+	end.
 
 -ifdef(TEST).
 
@@ -65,6 +76,13 @@ lambda_list_two_element_test() ->
 	Lambda = lambda_by_atom(LL, 'get-endpoint'),
 	?assert(length(LL) =:= 2),
 	?assert(hd(Lambda()) =:= "localhost").
+	
+consult_internal_test() ->
+	{ok, LL} = consult_internal(fun() -> {ok, "'get-timeout (lambda() (* 3 1000))\n'get-endpoint (lambda() (list '\"localhost\"))"} end),
+	Lambda = lambda_by_atom(LL, 'get-timeout'),
+	?assert(length(LL) =:= 2),
+	?assert(is_function(Lambda)),
+	?assert(Lambda() =:= 3000).
 
 -endif.
 
